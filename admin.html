@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/nav.css">
+<title>Admin Tools</title>
+</head>
+<body>
+
+  <div class="topnav">
+    <nav>
+      <a href="home.html" style='width:20%'>Home</a>
+      <a href="map.html" style='width:20%'>Map</a>
+      <a href="rules.html" style='width:20%'>Lockdown rules</a>
+    </nav>
+  </div>
+
+    <p id="usernameText" style="text-align: center;"></p>
+    <h2 style="text-align: center;">Admin tools for online database:</h2>
+    <div style="text-align: center;">
+        <h4 style="text-align: center;">Add a restriction to database:</h4>
+        <p>Please enter a title, description and region for the new restriction.</p>
+        <form action="#">
+            <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" type="text" id="addTitle">
+                <label class="mdl-textfield__label" for="addTitle">Title</label>
+            </div><br>
+            <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" type="text" id="addDescription">
+                <label class="mdl-textfield__label" for="addDescription">Description</label>
+            </div><br>
+            <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" type="text" id="addRegion">
+                <label class="mdl-textfield__label" for="addRegion">Region</label>
+            </div><br>
+            <!-- Accent-colored raised button with ripple -->
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" onclick="return addRestriction()">
+                Add restriction
+            </button>
+        </form>
+    </div>
+    <div style="text-align: center;">
+        <h4 style="text-align: center;">Remove a restriction from database:</h4>
+        <p>Please enter the title and region of the restriction to remove.</p>
+        <form action="#">
+            <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" type="text" id="removeTitle">
+                <label class="mdl-textfield__label" for="removeTitle">Title</label>
+            </div><br>
+            <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" type="text" id="removeRegion">
+                <label class="mdl-textfield__label" for="removeRegion">Region</label>
+            </div><br>
+            <!-- Accent-colored raised button with ripple -->
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" onclick="return removeRestriction()">
+                Remove restriction
+            </button><br><br>
+        </form>
+    </div>
+    <div style="text-align: center;">
+        <h4 style="text-align: center;">Create an admin account:</h4>
+        <p>Please enter a username and password for a new admin.</p>
+        <form action="#">
+            <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" type="text" id="newUsername">
+                <label class="mdl-textfield__label" for="newUsername">Username</label>
+            </div><br>
+            <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" type="password" id="newPassword">
+                <label class="mdl-textfield__label" for="newPassword">Password</label>
+            </div><br>
+            <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" type="password" id="newPassword2">
+                <label class="mdl-textfield__label" for="newPassword2">Confirm password</label>
+            </div><br>
+            <!-- Accent-colored raised button with ripple -->
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" onclick="return addAdminAccount()">
+                Add admin account
+            </button><br><br>
+        </form>
+    </div>
+
+    <div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
+        <div class="mdl-snackbar__text"></div>
+        <button class="mdl-snackbar__action" type="button"></button>
+    </div>
+
+<!-- Firebase stuff -->
+<script src="https://www.gstatic.com/firebasejs/8.4.3/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.4.3/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.4.3/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.4.3/firebase-database.js"></script>
+
+<script src="js/shared.js"></script>
+<script src="js/admin.js"></script>
+
+</body>
+</html>
