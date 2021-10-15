@@ -14,9 +14,15 @@ const firebaseConfig = {
     messagingSenderId: "182542596921",
     appId: "1:182542596921:web:a4a6ef412ce05b007206e8"
 };
-firebase.initializeApp(firebaseConfig);
-let passwordRef = firebase.database().ref("adminCredentials");
-passwordRef.on("value", snapshot => databaseData = snapshot.val());
+let passwordRef;
+try {
+    firebase.initializeApp(firebaseConfig);
+    passwordRef = firebase.database().ref("adminCredentials");
+    passwordRef.on("value", snapshot => databaseData = snapshot.val());
+} catch (error) {
+    console.log(error);
+}
+
 
 function login() {
     /*

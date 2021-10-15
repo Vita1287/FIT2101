@@ -35,17 +35,17 @@
 
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header" style="text-align: center;">
         <header class="mdl-layout__header" style="background-color:#02728A;">
-        <div class="mdl-layout__header-row" style="justify-content: right;">
+        <div class="mdl-layout__header-row" style="justify-content: center; padding:0px">
             <nav class="mdl-navigation">
-            <a class="mdl-navigation__link" href="home.html" style="font-family: 'Advent Pro', sans-serif; font-size: 30px;">Home</a>
-            <a class="mdl-navigation__link" href="" style="font-family: 'Advent Pro', sans-serif; font-size: 30px; color: #044242;">Map</a>
-            <a class="mdl-navigation__link" href="rules.html" style="font-family: 'Advent Pro', sans-serif; font-size: 30px;">Restrictions</a>
+            <a class="mdl-navigation__link" href="home.html" style="font-family: 'Advent Pro', sans-serif; font-size: 20px;">Home</a>
+            <a class="mdl-navigation__link" href="" style="font-family: 'Advent Pro', sans-serif; font-size: 20px; text-decoration: underline;">Map</a>
+            <a class="mdl-navigation__link" href="rules.html" style="font-family: 'Advent Pro', sans-serif; font-size: 20px;">Restrictions</a>
+            <a class="mdl-navigation__link" href="testing.html" style="font-family: 'Advent Pro', sans-serif; font-size: 20px;">Covid Testing</a>
             </nav>
         </div>
         <!-- controls -->
             <div style="width: 100%;"><input id="pac-input" class="controls button-60" type="text" placeholder="Search for places" style='width:90%'/></div>
             <div style="padding:7px; justify-content: space-between;">
-              
               <button type="button" onclick="covidCases()" class='button-32' style='width:45%;height:50px; font-size:16px'>Active cases heatmap</button>
               
                 <select id="shop" onchange="searchHotels();" class='button-32' style='width:45%;height: 50px; font-size: 16px'>
@@ -112,7 +112,7 @@
 
     <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
     <script
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDm6YmPrANaGrfBgouWBM0o1axvB9tOS38&callback=initMap&libraries=places&v=weekly"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDm6YmPrANaGrfBgouWBM0o1axvB9tOS38&callback=initMap&libraries=places,visualization&v=weekly"
       async
     ></script>
 

@@ -16,7 +16,12 @@ function recieveInput(){
         return
     }
     // call api
+    try{
     forwardGeocodeRequest(userAddress, 'getSearchResults')
+    }
+    catch(error){
+        console.log('geocoding API request failed')
+    }
 
 }
 

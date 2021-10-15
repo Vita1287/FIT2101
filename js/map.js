@@ -326,6 +326,10 @@ let places;
 let infoWindow;
 let markers = [];
 let autocomplete;
+let cases = 0;
+let caseData;
+let caseLocations = [];
+
 const countryRestrict = { country: "us" };
 const MARKER_PATH =
   "https://developers.google.com/maps/documentation/javascript/images/marker_green";
@@ -349,9 +353,109 @@ function createMarker(position, title) {
 
 /**
  * 
+ * @returns 
+ */
+function postCodeToLatLng(postcode, callback){
+  url = `https://maps.googleapis.com/maps/api/geocode/json?address=${postcode}&region=au&key=AIzaSyDm6YmPrANaGrfBgouWBM0o1axvB9tOS38`
+  //data = JSON.stringify(data)
+  //console.log(data["results"][0]["geometry"]["location"])
+  var obj;
+  try {
+    fetch(url)
+    .then(res => res.json())
+    .then(data => obj = data["results"][0]["geometry"]["location"])
+    .then(() => callback(obj))
+  } catch (e) {
+    console.log(e)
+  }
+}
+function getPostcode(coord){
+  updateLocalStorage("coord", coord)
+}
+
+// function getData(url, cb) {
+//   fetch(url)
+//     .then(response => response.json())
+//     .then(result => cb(result));
+// }
+
+function getFromAPI(url, callback){
+  var obj;
+  fetch(url)
+    .then(res => res.json())
+    .then(data => obj = data)
+    .then(() => callback(obj))
+ }
+
+ function getData(arrOfObjs){
+  updateLocalStorage("caseData", arrOfObjs)
+}
+
+/**
+* This function takes a jsonfile and gets the locations within the lockdown radius
+* @returns an array of the locations
+*/
+function getCases(){
+  //caseData = JSON.parse(localStorage.getItem("caseData"))
+  let caseData;
+
+  // fetch("caseData.json")
+  // .then(response => response.json())
+  // .then(data => obj = data)
+  // .then(() => callback(obj))
+
+  // getData("caseData.json", (data) => console.log({ data }))
+  // caseData = obj
+  // console.log(caseData)
+
+  getFromAPI("caseData.json", getData)
+  caseData = retrieveData("caseData")
+
+  heatmapData = []
+
+  for (let i = 0; i < caseData.length; i++){
+    // Get postcode of current entry
+    let postcode = caseData[i]["postcode"]
+    
+    postCodeToLatLng(postcode, getPostcode)
+    // Convert postcode to lat lng
+    let coord = retrieveData("coord")
+    //console.log(coord)
+    let temp_lat = coord["lat"]
+    let temp_lng = coord["lng"]
+
+
+    // Number of cases active in area
+    let active = caseData[i]["active"]
+    
+    //let hotspot = new google.maps.LatLng(temp_lat, temp_lng)
+    let hotspot = {location: new google.maps.LatLng(temp_lat, temp_lng), weight: 999*active}
+    
+    heatmapData.push(hotspot)
+    }
+
+  return heatmapData
+}
+
+
+/**
+ * 
  */
 function covidCases(){
-  return
+  flag = checkLocalStorage("cases")
+  if(flag==true){
+    cases = retrieveData("cases")
+    if (cases==0){
+      updateLocalStorage("cases", 1)
+    }else if(cases==1){
+      updateLocalStorage("cases", 0)
+    }
+  }else{
+    updateLocalStorage("cases", 1)
+  }
+  
+  
+  location.reload()
 }
 
 // Defines the callback function referenced in the jsonp file.
@@ -646,7 +750,14 @@ function searchHotels(){
   }
   
 }
-
+/**
+ * This function takes in the lat/lng of 2 locations and calculates the distance in km between them
+ * @param {*} lat1 : the latitude of first location
+ * @param {*} lng1 : the longitude of first location
+ * @param {*} lat2 : the latitude of second location
+ * @param {*} lng2 : the longitude of second location
+ * @returns distance between 2 locations in km
+ */
 function haversine(lat1, lng1, lat2, lng2){
 
  var R = 6371; // km 
@@ -662,6 +773,111 @@ function haversine(lat1, lng1, lat2, lng2){
  return Math.round(d);
 }
 
+/**
+ * This function takes a jsonfile and gets the locations within the lockdown radius
+ * @returns an array of the locations
+ */
+function getTesting(){
+  test = JSON.parse(localStorage.getItem("testing"))
+  locations = []
+
+  for (let i = 0; i < test.length; i++){
+    let temp_lat = test[i]["Latitude"]
+    let temp_lng = test[i]["Longitude"]
+    let distance = haversine(temp_lat,temp_lng, localStorage.getItem("user_lat"), localStorage.getItem("user_lng"))
+    if (localStorage.getItem('radius') == 0 || distance < localStorage.getItem('radius')){
+      locations.push(test[i])
+    }
+
+  }
+  return locations
+}
+
+function markerList(results){
+ 
+  clearResults();
+  clearMarkers();
+
+  // Create a marker for each place found, and
+  // assign a letter of the alphabetic to each marker icon.
+  for (let i = 0; i < results.length; i++) {
+    const markerLetter = String.fromCharCode("A".charCodeAt(0) + (i % 26));
+    const markerIcon = MARKER_PATH + markerLetter + ".png";
+
+    // Use marker animation to drop the icons incrementally on the map.
+    markers[i] = new google.maps.Marker({
+      position: results[i].geometry.location,
+      animation: google.maps.Animation.DROP,
+      icon: markerIcon,
+    });
+    // If the user clicks a place marker, show the details of that hotel
+    // in an info window.
+    markers[i].placeResult = results[i];
+    google.maps.event.addListener(markers[i], "click", showInfoWindow);
+    setTimeout(dropMarker(i), i * 100);
+    addResult(results[i], i);
+  }
+  
+  
+}
+
+
+function displayActive(){
+  // let active = getCases()
+  let active = [
+    {location: new google.maps.LatLng(-37.72, 144.96), weight: 999*45},
+    {location: new google.maps.LatLng(-37.73, 144.97), weight: 999*97},
+    {location: new google.maps.LatLng(-37.74, 144.98), weight: 999*25},
+    {location: new google.maps.LatLng(-37.75, 144.99), weight: 999*8},
+    {location: new google.maps.LatLng(-37.76, 145.10), weight: 999*101},
+    {location: new google.maps.LatLng(-37.77, 145.11), weight: 999*70},
+    {location: new google.maps.LatLng(-37.78, 145.12), weight: 999*36},
+    {location: new google.maps.LatLng(-37.79, 145.13), weight: 999*92},
+    {location: new google.maps.LatLng(-37.82, 144.56), weight: 999*45},
+    {location: new google.maps.LatLng(-37.73, 144.57), weight: 999*97},
+    {location: new google.maps.LatLng(-37.74, 144.58), weight: 999*25},
+    {location: new google.maps.LatLng(-37.75, 144.59), weight: 999*8},
+    {location: new google.maps.LatLng(-37.76, 145.70), weight: 999*101},
+    {location: new google.maps.LatLng(-37.77, 145.71), weight: 999*70},
+    {location: new google.maps.LatLng(-37.78, 145.72), weight: 999*36},
+    {location: new google.maps.LatLng(-37.79, 145.74), weight: 999*92}
+
+
+  ]
+  
+  let heatmap = new google.maps.visualization.HeatmapLayer({
+    data: active
+  });
+  heatmap.setMap(map);
+  heatmap.set("radius", 25);
+
+  map.data.setStyle((feature) => {
+    const low = [151, 83, 34]; // color of mag 1.0
+    const high = [5, 69, 54]; // color of mag 6.0 and above
+    const minMag = 1.0;
+    const maxMag = 6.0;
+    // fraction represents where the value sits between the min and max
+    const fraction =
+      (Math.min(feature.getProperty("mag"), maxMag) - minMag) / (maxMag - minMag);
+    const color = interpolateHsl(low, high, fraction);
+    return {
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        strokeWeight: 0.5,
+        strokeColor: "#fff",
+        fillColor: color,
+        fillOpacity: 2 / feature.getProperty("mag"),
+        // while an exponent would technically be correct, quadratic looks nicer
+        scale: Math.pow(feature.getProperty("mag"), 2),
+      },
+      zIndex: Math.floor(feature.getProperty("mag")),
+    };
+  
+  });
+
+
+  updateLocalStorage("cases", 1)
+}
 
 
 /*
@@ -692,22 +908,18 @@ function initMap() {
   // Bind the search results to the map area
   autocomplete.bindTo("bounds", map);
   // Specify just the place data fields that you need.
- 
 
   
-  map.data.setStyle(styleFeature);
+ 
+  if(checkLocalStorage("cases")==1){
+      let caseFlag = retrieveData("cases")
 
-  // Get the earthquake data (JSONP format)
-  // This feed is a copy from the USGS feed, you can find the originals here:
-  //   http://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php
-  const script = document.createElement("script");
-
-  script.setAttribute(
-    "src",
-    "https://storage.googleapis.com/mapsdevsite/json/quakes.geo.json"
-  );
-  document.getElementsByTagName("head")[0].appendChild(script);
-
+      if (caseFlag==true){
+        displayActive()
+      }
+  }
+  
+ 
   
   
 
@@ -835,7 +1047,7 @@ function initMap() {
           infoWindow.open(map);
           map.setCenter(user_position);
           let distance = haversine(user_position.lat,user_position.lng, localStorage.getItem("user_lat"), localStorage.getItem("user_lng"))
-          if (distance > localStorage.getItem('radius')){
+          if (localStorage.getItem('radius') != 0 && distance > localStorage.getItem('radius')){
             res = "You are " + distance.toString() + " KM away from your home, go back!"
             alert(res)
           }
@@ -871,7 +1083,7 @@ function initMap() {
     center: latlng,
     radius: localStorage.getItem('radius') * 1000
   });
-  
+
   
 }
 

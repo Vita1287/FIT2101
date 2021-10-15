@@ -35,8 +35,7 @@ function getLockdownRadius(databaseData) {
         console.log(lockdownRadius)
         localStorage.setItem("radius",lockdownRadius)
     } catch(err) {
-        console.log("Error")
-        return "Error: couldn't find lockdown radius";
+        localStorage.setItem("radius", 50)
     }
 }
 
@@ -69,6 +68,11 @@ function geocodeConstructor(substr){
     .then(res => res.json())
     .then(data => localStorage.setItem("user_lng", data["results"][0]["geometry"]["location"]["lng"]) )
     
+    res = "test.json"
+    fetch(res)
+    .then(res => res.json())
+    .then(data => localStorage.setItem("testing", JSON.stringify(data["sites"])))
+
   }
 // url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=32.715738,%20-117.161084&radius=12218&type=grocery_or_supermarket&key=AIzaSyDm6YmPrANaGrfBgouWBM0o1axvB9tOS38"
 

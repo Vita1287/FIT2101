@@ -16,13 +16,31 @@ const firebaseConfig = {
     messagingSenderId: "182542596921",
     appId: "1:182542596921:web:a4a6ef412ce05b007206e8"
 };
-firebase.initializeApp(firebaseConfig);
-let dbRef = firebase.database().ref();
-dbRef.on("value", snapshot => loadData(snapshot.val()));
+let dbRef;
+try {
+    firebase.initializeApp(firebaseConfig);
+    dbRef = firebase.database().ref();
+    dbRef.on("value", snapshot => loadData(snapshot.val()));    
+} catch (error) {
+    console.log(error);
+}
 
 
 let adminUsername = retrieveData("adminUsername");
 document.getElementById("usernameText").innerText = "Admin account: " + adminUsername;
+
+/**
+ * This method converts strings like "hello world" to "Hello World"
+ * @param {} phrase The phrase to conver to Title Case 
+ * @returns phrase, in Title Case
+ */
+ function toTitleCase(phrase){
+    return phrase
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
 function loadData(data) {
     /*
@@ -32,7 +50,53 @@ function loadData(data) {
     */
     console.log(data);
     databaseData = data;
+    displayDatabase(data);
 }
+
+function displayDatabase(data) {
+    /*
+    This function displays the data from the database onto the webpage.
+    Inputs:
+    - data (object): an object of data from the online database
+    */
+    let databaseDataRef = document.getElementById("databaseList");
+    let htmlOutput = "";
+    for (let databaseRegion in databaseData["lockdownRules"]) {
+        if (databaseRegion != "placeholderRegion") {
+            // Add a header for the region
+            htmlOutput += `<h6 style="padding-left: 3%;font-family: 'Advent Pro', sans-serif; font-size: 25px; font-weight:bold">${toTitleCase(databaseRegion) + ":"}</h6>`;
+            for (let i = 0; i < databaseData["lockdownRules"][databaseRegion].length; i++) {
+                // Add each restriction from the region
+                let restriction = databaseData["lockdownRules"][databaseRegion][i];
+                htmlOutput += `
+                <li class="mdl-list__item mdl-list__item--three-line" style="font-family: 'Advent Pro', sans-serif; font-size: 18px; font-weight:bold">
+                <span class="mdl-list__item-primary-content">
+                    <span>${restriction["title"]} - ${restriction["admin"]}</span><br>
+                    <span class="mdl-list__item-sub-title" style='font-size:14px;font-weight:bold'>${restriction["description"]}</span><br>
+                </span>
+                <span class="mdl-list__item-secondary-content">
+                    <a class="mdl-list__item-secondary-action" href="#" onclick="buttonRemoveRestriction('${restriction["title"]}', '${databaseRegion}')"><i class="material-icons" style="position: relative; color:black">delete</i></a>
+                </span>
+                </li><br>`;
+            }
+        }
+    }
+    databaseDataRef.innerHTML = htmlOutput;
+}
+
+function buttonRemoveRestriction(restrictionTitle, region) {
+    /*
+    This function is called when the delete button next to a restriction is called.
+    This function will ask the user for confirmation before calling the adminRemoveRestriction function.
+    Inputs:
+    - restrictionTitle (string): The title of the restriction to be deleted
+    - region (string): The region containing the restriction
+    */
+    if (confirm("Are you sure you want to delete this restriction?")) {
+        adminRemoveRestriction(restrictionTitle, region)
+    }
+}
+
 
 function addRestriction() {
     /*
@@ -62,30 +126,6 @@ function addRestriction() {
     return false;
 }
 
-function removeRestriction() {
-    /*
-    This function is called after the "Remove Restriction" button is pressed.
-    This function will check that the inputs are valid before calling the adminRemoveRestriction function.
-    */
-    let titleRef = document.getElementById("removeTitle");
-    let regionRef = document.getElementById("removeRegion");
-    let title = titleRef.value.trim();
-    let region = regionRef.value.trim();
-    let snackbarContainer = document.querySelector('#snackbar'); // Snackbar
-    let snackbarMessage = {};
-    if (!(title == "" || region == "")) {
-        // Success
-        snackbarMessage = { message: adminRemoveRestriction(title, region) };
-        snackbarContainer.MaterialSnackbar.showSnackbar(snackbarMessage);
-        titleRef.value = "";
-        regionRef.value = "";
-    } else {
-        // Bad inputs
-        snackbarMessage = { message: "Please enter the title and region" };
-        snackbarContainer.MaterialSnackbar.showSnackbar(snackbarMessage);
-    }
-    return false;
-}
 
 // ADMIN TOOLS:
 function adminAddRestriction(restrictionTitle, restrictionDescription, region) {
@@ -110,7 +150,11 @@ function adminAddRestriction(restrictionTitle, restrictionDescription, region) {
                 }
             }
             databaseData["lockdownRules"][databaseRegion].push({"description": restrictionDescription, "title": restrictionTitle, "admin": adminUsername});
-            dbRef.set(databaseData);
+            try {
+                dbRef.set(databaseData);                
+            } catch (error) {
+                console.log(error);
+            }
             return "Restriction has been added!";
         }
     }
@@ -133,7 +177,11 @@ function adminRemoveRestriction(restrictionTitle, region) {
             for (let i = 0; i < databaseData["lockdownRules"][databaseRegion].length; i++) {
                 if (databaseData["lockdownRules"][databaseRegion][i].title == restrictionTitle) {
                     databaseData["lockdownRules"][databaseRegion].splice(i, 1);
-                    dbRef.set(databaseData);
+                    try {
+                        dbRef.set(databaseData);                        
+                    } catch (error) {
+                        console.log(error);
+                    }
                     return "Restriction has been deleted!";
                 }
             }
@@ -170,7 +218,11 @@ function addAdminAccount() {
                 // Admin account does not already exist
                 // Add admin account to online database
                 databaseData["adminCredentials"][username] = password;
-                dbRef.set(databaseData);
+                try {
+                    dbRef.set(databaseData);                    
+                } catch (error) {
+                    console.log(error);
+                }
                 snackbarMessage = { message: "Admin account created"};
                 snackbarContainer.MaterialSnackbar.showSnackbar(snackbarMessage);
                 usernameRef.value = "";

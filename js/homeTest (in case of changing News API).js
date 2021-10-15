@@ -1,40 +1,13 @@
 /*
-This file is to be kept in case we change News API's since there are many pros/cons to each
-(file will be removed from repo before final submission)
-*/
-const NEWS_ACCESS_TOKEN = "492ccef29a1d4970a7295b69280916ad";
-const URL = "https://newsapi.org/v2/everything?";
-
-// for testing:
-const KEYWORDS = ["COVID", "MELBOURNE"];
-
-/*
-dialog box handler
+This is in case everything goes wrong
+Created by Liam Todd
 */
 
-function getUserAddress(){
-    let dialog = document.querySelector('dialog');
-    if (! dialog.showModal) {
-      dialogPolyfill.registerDialog(dialog);
-    }
-    dialog.showModal();
+const NEWS_ACCESS_TOKEN = "68998b0d-a1f2-421a-863d-37e944e8459a";
+const URL = "https://webhose.io/filterWebContent?";
 
-}
-
-/*
-onclick function for dialog box
-*/
-function exitDialog(){
-    let suburb = document.getElementById('suburb').value;
-    let street = document.getElementById('street-name').value;
-    let number = document.getElementById('street-number').value;
-    let dialog = document.querySelector('dialog');
-    dialog.close();
-    address = number + ' ' + street + ' ' + suburb;
-    console.log(address);
-    return address;
-
-}
+// for dynamic news search
+const KEYWORDS = ["COVID", "CORONAVIRUS", localStorage.getItem('user-state'), localStorage.getItem('user-country')];
 
 /*
 generates request url to call API, accepts array of keyword strings
@@ -42,32 +15,26 @@ generates request url to call API, accepts array of keyword strings
 
 function urlGenerator(keyWords){
 
-    let url = URL
-        + "language=en"             // language=english
-        + "&q=";
+    let url = URL 
+        + "token=" 
+        + NEWS_ACCESS_TOKEN
+        + "&format=json&sort=crawled"
+        + "&q=language%3Aenglish%20" // language=english
+        + "country%3AAU%20";         // country = australia
     
     for (i=0; i<keyWords.length; i++){
+        url += "thread.title%3A";
         url += keyWords[i];
-        if (i < keyWords.length - 1){
-            url += ", ";
+
+        if (i != keyWords.length - 1){
+            url += "%20";  
         }
     }
-
-    url += "&qInTitle=";
-
-    for (i=0; i<keyWords.length; i++){
-        url += keyWords[i];
-        if (i < keyWords.length - 1){
-            url += ", ";
-        }
-    }
-
-    url += "&apiKey=" + NEWS_ACCESS_TOKEN;
-
 
     console.log(url)
     return url;
 }
+
 
 /*
 displays news on page
@@ -80,22 +47,31 @@ function getNews(){
     .then(data => {
         console.log(data)
         
-        for (i=0;i<data.articles.length;i++){
+        for (i=0;i<data.posts.length;i++){
 
-            let imageInnerHtml = data.articles[i].urlToImage;
+            let imageInnerHtml;
+            // generic image if none associated with story
+            if (data.posts[i].external_images.length == 0){
+                // imageInnerHtml =  `<div><img src="img/COVID-19-news-banner.jpg" width="100%"></div>`
+                imageInnerHtml = ""; // no image if none exists
+            }
+            // get image url if associated with story
+            else{
+                imageInnerHtml = `<div><img src=${data.posts[i].external_images[0].url}  width="100%"></div>`;
+            }
 
             newsCard =     
             `
             <div class="demo-card-wide mdl-card mdl-shadow--2dp">
             <div class="mdl-card__title">
-              <h2 class="mdl-card__title-text" style="color:grey;font-size:17px">${data.articles[i].title}</h2>
+              <h2 class="mdl-card__title-text" style="color:grey;font-size:17px">${data.posts[i].title}</h2>
             </div>
-            <img src=${imageInnerHtml}>
+            ${imageInnerHtml}
             <div class="mdl-card__supporting-text">
-              ${data.articles[i].description}
+              ${data.posts[i].text.slice(0,90) + '...'}
             </div>
             <div class="mdl-card__actions mdl-card--border">
-                <a href=${data.articles[i].url} style='color:grey'>See full story</a>
+                <a href=${data.posts[i].url} style='color:grey'>See full story</a>
             </div>
           </div>;
           `
@@ -104,8 +80,11 @@ function getNews(){
     }))
 }
 
+
+
 /*
 get user's address and display news on load
 */
-getUserAddress();
 getNews();
+
+

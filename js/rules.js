@@ -22,9 +22,14 @@ const firebaseConfig = {
     messagingSenderId: "182542596921",
     appId: "1:182542596921:web:a4a6ef412ce05b007206e8"
 };
-firebase.initializeApp(firebaseConfig);
-let dbRef = firebase.database().ref("lockdownRules");
-dbRef.on("value", snapshot => loadData(snapshot.val()));
+let dbRef;
+try {
+    firebase.initializeApp(firebaseConfig);
+    dbRef = firebase.database().ref("lockdownRules");
+    dbRef.on("value", snapshot => loadData(snapshot.val()));    
+} catch (error) {
+    console.log(error);
+}
 
 /**
  * This method converts strings like "hello world" to "Hello World"
@@ -69,11 +74,17 @@ function displayData(data) {
             ${restriction["description"]}
           </span>
         </span>
+        <button onclick='playRule("${restriction["description"]}")'
+        style="border: none;background: none; float: right; background-color: #055b6e; color: white;" 
+        class="mdl-button mdl-js-button mdl-button--fab">
+            <i class="material-icons">microphone</i>
+        </button>
         </li>`
 
         // Add restrictions to a large string for the text-to-speech.
-        allRestrictionsString += "Restriction title: " + restriction["title"] + " Restriction description: " + restriction["description"] + " ";
+        allRestrictionsString += "Title: " + restriction["title"] + ". Description: " + restriction["description"] + ". ";
     }
+    rulesHtml += "<br><br>";
     ruleListRef.innerHTML = rulesHtml;
 }
 
@@ -87,6 +98,21 @@ function playSound(){
     else{
         synth.speak(utterance);
     }
-    console.log(synth.paused);
-    console.log(synth.speaking);
 }
+
+/**
+ * Text to speech for titles
+ * :param title: the title string to speak
+ */
+ function playRule(rule){
+
+    let synth = window.speechSynthesis;
+    let utterance = new SpeechSynthesisUtterance(rule);
+  
+    if (synth.speaking) {
+        synth.cancel();
+    }
+    else{
+        synth.speak(utterance);
+    }
+  }
